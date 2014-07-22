@@ -28,10 +28,15 @@
 #
 CFLAGS=	-Wall -O
 
-SRCS=	snodcap.c
+SRCS=	snodcap.c snodio.c
 OBJS=	$(SRCS:.c=.o)
 
 all:	snodcap
+
+install:
+
+clean:
+	rm -f snodcap $(OBJS) snodfish.out
 
 snodcap: $(OBJS)
 	$(CC) -o snodcap $(OBJS)
