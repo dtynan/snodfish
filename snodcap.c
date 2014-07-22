@@ -31,7 +31,6 @@
 #include <stdlib.h>
 #include <sys/select.h>
 #include <sys/types.h>
-#include <sys/time.h>
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
@@ -168,7 +167,6 @@ main(int argc, char *argv[])
 		 * What did we catch?
 		 */
 		snod_stamp(&snod);
-		gettimeofday(&snod.tstamp, NULL);
 		if (FD_ISSET(left_fd, &readfds)) {
 			if ((snod.left_size = read(left_fd, snod.left_buffer, BUFFER_SIZE)) < 0) {
 				perror("snodcap: left read failure");
@@ -184,6 +182,17 @@ main(int argc, char *argv[])
 		if (verbose)
 			printf("%ld.%ld: %ld <-> %ld\n", snod.tstamp.tv_sec, snod.tstamp.tv_usec, snod.left_size, snod.right_size);
 		snod_write(outfp, &snod);
+		/*
+		 * Now copy the source to the destination.
+		 */
+		if (snod.left_size > 0 && write(right_fd, snod.left_buffer, snod.left_size) < 0) {
+			perror("snodcap: right write failure.");
+			exit(1);
+		}
+		if (snod.right_size > 0 && write(left_fd, snod.right_buffer, snod.right_size) < 0) {
+			perror("snodcap: left write failure.");
+			exit(1);
+		}
 	}
 	/*
 	 * We're done - shut it all down.

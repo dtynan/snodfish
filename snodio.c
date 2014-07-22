@@ -85,9 +85,9 @@ snod_read(FILE *infp, struct snodfish *snodp)
 	snodp->right_size = ntohs(*sp);
 	if (snodp->left_size > SNODBUF_SIZE || snodp->right_size > SNODBUF_SIZE)
 		return(-1);
-	if (fread(snodp->left_buffer, snodp->left_size, 1, infp) != 1)
+	if (snodp->left_size > 0 && fread(snodp->left_buffer, snodp->left_size, 1, infp) != 1)
 		return(-1);
-	if (fread(snodp->right_buffer, snodp->right_size, 1, infp) != 1)
+	if (snodp->right_size > 0 && fread(snodp->right_buffer, snodp->right_size, 1, infp) != 1)
 		return(-1);
 	return(0);
 }
@@ -110,9 +110,9 @@ snod_write(FILE *outfp, struct snodfish *snodp)
 	*sp   = htons(snodp->right_size);
 	if (fwrite(header, 12, 1, outfp) != 1)
 		return(-1);
-	if (fwrite(snodp->left_buffer, snodp->left_size, 1, outfp) != 1)
+	if (snodp->left_size > 0 && fwrite(snodp->left_buffer, snodp->left_size, 1, outfp) != 1)
 		return(-1);
-	if (fwrite(snodp->right_buffer, snodp->right_size, 1, outfp) != 1)
+	if (snodp->right_size > 0 && fwrite(snodp->right_buffer, snodp->right_size, 1, outfp) != 1)
 		return(-1);
 	return(0);
 }
