@@ -29,3 +29,17 @@
  *
  * ABSTRACT
  */
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+
+#include "snodfish.h"
+
+/*
+ * All life begins here...
+ */
+int
+main(int argc, char *argv[])
+{
+	exit(0);
+}
