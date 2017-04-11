@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017, Kalopa Research.  All rights reserved.
+ * Copyright (c) 2017, Kalopa Research.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
@@ -29,3 +29,63 @@
  *
  * ABSTRACT
  */
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <syslog.h>
+#include <string.h>
+
+#include "snodfish.h"
+
+struct route		*rfreelist = NULL;
+
+/*
+ * Allocate a new route.
+ */
+struct route *
+new_route()
+{
+	struct route *rp;
+
+	if ((rp = rfreelist) != NULL)
+		rfreelist = rp->next;
+	else if ((rp = (struct route *)malloc(sizeof(struct route))) == NULL) {
+		syslog(LOG_ERR, "new_route() malloc: %m");
+		exit(1);
+	}
+	rp->next = NULL;
+	return(rp);
+}
+
+/*
+ * Release an unused route.
+ */
+void
+route_free(struct route *rp)
+{
+	path_freeall(rp->path);
+	if (rp->func != NULL)
+		free(rp->func);
+	if (rp->response != NULL)
+		free(rp->response);
+	rp->next = rfreelist;
+	rfreelist = rp;
+}
+
+/*
+ *
+ */
+struct route *
+build_route(int method, char *url, struct pool *pp, char *func, char *response)
+{
+	struct route *rp = new_route();
+
+	rp->method = method;
+	rp->path = parse_url(url);
+	rp->pool = pp;
+	if (func != NULL)
+		rp->func = strdup(func);
+	else if (response != NULL)
+		rp->response = strdup(response);
+	return(rp);
+}

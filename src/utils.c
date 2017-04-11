@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017, Kalopa Research.  All rights reserved.
+ * Copyright (c) 2017, Kalopa Research.  All rights reserved.
  *
  * This is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by
@@ -32,14 +32,19 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <syslog.h>
+#include <string.h>
+#include <ctype.h>
 
 #include "snodfish.h"
 
 /*
- * All life begins here...
+ * Compute a hash for optimized searching.
  */
 int
-main(int argc, char *argv[])
+compute_hash(const char *strp)
 {
-	exit(0);
+	if (strp == NULL || *strp == '\0')
+		return(0);
+	return(88);			/* FIXME */
 }

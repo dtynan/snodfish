@@ -1,5 +1,5 @@
 #
-# Copyright (c) 22017, Kalopa Research.  All rights reserved.
+# Copyright (c) 2014-2017, Kalopa Research.  All rights reserved.
 #
 # This is free software; you can redistribute it and/or modify it
 # under the terms of the GNU General Public License as published by
@@ -29,11 +29,20 @@
 #
 # ABSTRACT
 #
-all:
-	make -C src all
+CFLAGS=	-Wall -O
+
+CSRCS=	main.c worker.c pool.c route.c path.c listen.c channel.c \
+		buffer.c utils.c
+OBJS=	$(CSRCS:.c=.o) parse.o
+
+all:	snodfish
 
 install:
-	make -C src install
 
 clean:
-	make -C src clean
+	rm -f snodfish $(OBJS)
+
+snodfish: $(OBJS)
+	$(CC) -o snodfish $(OBJS)
+
+$(OBJS): snodfish.h

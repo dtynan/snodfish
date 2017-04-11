@@ -1,0 +1,99 @@
+#
+# Snodfish implementation of the Nova API utilising a number of different
+# resource pools. Currently supports versions 2.38, 2.39 and 2.40 of the Nova
+# API specification as defined here:
+# https://developer.openstack.org/api-ref/compute/
+#
+
+#
+# Listen on the well-known Nova API port.
+listen '0.0.0.0:8773';
+listen '0.0.0.0:8775';
+
+manage "zmq://0.0.0.0:5555";
+
+namespace '/compute/v2.1';
+
+#
+# List of supported API versions - these are done as short-cuts. No need for
+# a back-end service pool for these.
+get '/' returns "[2.38, 2.39, 2.40]";
+get '/2.38' returns "{}";
+
+#
+# Standard server activities - the main API pool.
+pool 'nova_main_api' {
+	service "zmq://10.30.1.50:5555";
+	service "zmq://10.30.1.51:5555", "zmq://10.30.1.52:5555";
+	service "zmq://10.30.1.53:5555";
+
+	get '/servers' => 'get_servers';
+	post '/servers' => 'create_servers';
+	get '/servers/detail' => 'list_server_detail';
+	get '/servers/{server_id}' => 'get_server';
+	put '/servers/{server_id}' => 'update_server';
+	delete '/servers/{server_id}' => 'delete_server';
+
+	post '/servers/{server_id}/action' => 'server_action';
+	post '/servers/{server_id}/remote_consoles' => 'create_remote_console';
+	get '/servers/{server_id}/os-security-groups' => 'get_security_groups';
+	get '/servers/{server_id}/diagnostics' => 'show_server_diags';
+
+	get '/servers/{server_id}/ips' => 'list_ips';
+	get '/servers/{server_id}/ips/{network_label}' => 'show_ip_details';
+
+	get '/servers/{server_id}/os-instance-actions' => 'list_server_actions';
+	get '/servers/{server_id}/os-instance-actions/{request_id}' => 'server_action_detail';
+
+	get '/servers/{server_id}/os-interface' => 'list_port_interfaces';
+	post '/servers/{server_id}/os-interface' => 'create_interface';
+	get '/servers/{server_id}/os-interface/{port_id}' => 'port_interface_detail';
+	delete '/servers/{server_id}/os-interface/{port_id}' => 'detach_interface';
+
+	get '/servers/{server_id}/os-server-password' => 'show_server_password';
+	delete '/servers/{server_id}/os-server-password' => 'clear_admin_password';
+}
+
+#
+# Metadata services
+pool 'nova_meta_api' {
+	service "zmq://10.30.1.61:5555";
+	service "zmq://10.30.1.62:5555";
+
+	get '/servers/{server_id}/metadata' => 'list_all_metadata';
+	post '/servers/{server_id}/metadata' => 'update_md_items';
+	put '/servers/{server_id}/metadata' => 'create_md_items';
+	get '/servers/{server_id}/metadata/{key}' => 'get_md_detail';
+	delete '/servers/{server_id}/metadata/{key}' => 'delete_md_item';
+}
+
+#
+# Volume services
+pool 'nova_volume_api' {
+	service "zmq://10.30.1.81:5555";
+	service "zmq://10.30.1.82:5555";
+	service "zmq://10.30.1.83:5555";
+
+	get '/servers/{server_id}/os-volume_attachments' => 'list_volume_attachments';
+	post '/servers/{server_id}/os-volume_attachments' => 'attach_volume';
+	get '/servers/{server_id}/os-volume_attachments/{attachment_id}' => 'get_volume_attachment';
+	put '/servers/{server_id}/os-volume_attachments/{attachment_id}' => 'update_volume_attachment';
+	delete '/servers/{server_id}/os-volume_attachments/{attachment_id}' => 'delete_volume';
+}
+
+#
+# Flavor and Image services
+pool 'nova_flavor_api' {
+	service "zmq://10.30.1.64:5555";
+	service "zmq://10.30.1.65:5555";
+	service "zmq://10.30.1.66:5555";
+	service "zmq://10.30.1.67:5555";
+
+	get '/flavors' => 'list_flavors';
+	post '/flavors' => 'create_flavor';
+	get '/flavors/detail' => 'flavors_detail';
+	get '/flavors/{flavor_id}' => 'get_flavor_detail';
+	delete '/flavors/{flavor_id}' => 'delete_flavor';
+	get '/flavors/{flavor_id}/os-flavor-access' => 'get_flavor_access';
+	post '/flavors/{flavor_id}/action' => 'modify_flavor_access';
+}
